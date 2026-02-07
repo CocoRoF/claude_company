@@ -1,0 +1,19 @@
+[project]
+name = "claude-control"
+version = "1.0.0"
+description = "Claude Control - Claude Code Multi-Session Management System"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.28.0",
+    "redis>=7.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]

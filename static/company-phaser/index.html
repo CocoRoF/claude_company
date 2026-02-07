@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Office - Phaser 3 Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 헤더 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: #1a1a2e;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .header-badge {
+            background: #10b981;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* 메인 컨텐츠 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* 툴바 */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #16162a;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .toolbar-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        .toolbar-title-icon {
+            font-size: 20px;
+        }
+        
+        .worker-count {
+            color: #888;
+            font-size: 13px;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: #252542;
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #303052;
+            color: #fff;
+            border-color: #4a4a7e;
+        }
+        
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* 게임 컨테이너 */
+        #game-container {
+            flex: 1;
+            width: 100%;
+            background: #1a1a2e;
+            overflow: hidden;
+        }
+        
+        #game-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* 하단 상태 바 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background: #12121f;
+            border-top: 1px solid #2a2a4e;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+        
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 15, 26, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #2a2a4e;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 힌트 패널 */
+        .hints-panel {
+            position: fixed;
+            bottom: 60px;
+            left: 20px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid #3a3a5e;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .hints-panel h4 {
+            color: #aaa;
+            margin-bottom: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .hints-panel ul {
+            list-style: none;
+            line-height: 1.8;
+        }
+        
+        .hints-panel kbd {
+            background: #252542;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1 class="logo">🏢 Company Office</h1>
+            <span class="header-badge">Phaser 3 + Pixel Art</span>
+        </header>
+        
+        <!-- 메인 컨텐츠 -->
+        <main class="main-content">
+            <!-- 툴바 -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="toolbar-title">
+                        <span class="toolbar-title-icon">🏛️</span>
+                        <span>Conference Room</span>
+                    </div>
+                    <span class="worker-count" id="worker-count">0 workers</span>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn" onclick="zoomIn()" title="Zoom In">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                    <button class="btn" onclick="zoomOut()" title="Zoom Out">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                    <button class="btn" onclick="resetView()" title="Reset View">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 게임 컨테이너 -->
+            <div id="game-container"></div>
+        </main>
+        
+        <!-- 상태 바 -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot"></span>
+                <span id="status-text">Ready</span>
+            </div>
+            <div class="status-item">
+                <span>Zoom: <span id="zoom-level">120%</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Office Scene...</div>
+    </div>
+    
+    <!-- 힌트 패널 -->
+    <div class="hints-panel">
+        <h4>Controls</h4>
+        <ul>
+            <li><kbd>Scroll</kbd> Zoom in/out</li>
+            <li><kbd>Right-drag</kbd> Pan camera</li>
+            <li><kbd>+</kbd> <kbd>-</kbd> Zoom buttons</li>
+        </ul>
+    </div>
+    
+    <!-- Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    
+    <!-- 게임 모듈 (ES6 모듈로 로드) -->
+    <script type="module">
+        import { gameManager } from './main.js';
+        
+        // 게임 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Starting Phaser game...');
+            
+            gameManager.init('game-container');
+            
+            gameManager.onReady((manager) => {
+                console.log('Game ready!');
+                
+                // 로딩 오버레이 숨기기
+                const overlay = document.getElementById('loading-overlay');
+                overlay.classList.add('hidden');
+                
+                // 상태 텍스트 업데이트
+                document.getElementById('status-text').textContent = 'Office scene loaded';
+            });
+        });
+        
+        // 전역 함수 (버튼용)
+        window.zoomIn = () => {
+            if (window.CompanyGame) {
+                window.CompanyGame.zoomIn();
+                updateZoomDisplay();
+            }
+        };
+        
+        window.zoomOut = () => {
+            if (window.CompanyGame) {
+                window.CompanyGame.zoomOut();
+                updateZoomDisplay();
+            }
+        };
+        
+        window.resetView = () => {
+            if (window.CompanyGame) {
+                window.CompanyGame.resetView();
+                updateZoomDisplay();
+            }
+        };
+        
+        function updateZoomDisplay() {
+            const scene = window.CompanyGame?.scene;
+            if (scene) {
+                const zoom = Math.round(scene.cameraZoom * 100);
+                document.getElementById('zoom-level').textContent = zoom + '%';
+            }
+        }
+    </script>
+</body>
+</html>
