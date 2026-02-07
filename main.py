@@ -265,15 +265,6 @@ async def dashboard():
         return FileResponse(str(index_file))
     return {"error": "Dashboard not found"}
 
-
-@app.get("/dashboard/phaser")
-async def dashboard_phaser():
-    """Serve the Phaser 3 Company Office Demo"""
-    phaser_index = static_dir / "company-phaser" / "index.html"
-    if phaser_index.exists():
-        return FileResponse(str(phaser_index))
-    return {"error": "Phaser dashboard not found"}
-
 if __name__ == "__main__":
     try:
         host = os.environ.get("APP_HOST", "0.0.0.0")
